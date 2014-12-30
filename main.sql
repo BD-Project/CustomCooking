@@ -1,7 +1,19 @@
 create database if not exists CustomCooking;
 use CustomCooking;
 
+drop table if exists Rating;
+drop table if exists ToolAvailability;
+drop table if exists ProductAvailability;
+drop table if exists Ingredient;
+drop table if exists ToolSet;
+drop table if exists Author;
+drop table if exists Sequence;
+drop table if exists Step;
 drop table if exists Recipe;
+drop table if exists Product;
+drop table if exists Tool;
+drop table if exists UserName;
+
 create table Recipe (
 	idRecipe integer not null primary key,
 	nameRecipe character(30) not null,
@@ -21,7 +33,6 @@ values
 	(2,'ceasar salad','contorno',null,'americana',null,null,5,1,'ale'),
 	(3,'cannoli siciliani','dolce',null,'siciliana','italia','sicilia',90,3,'fede');
 
-drop table if exists Step;
 create table Step (
 	idStep integer not null primary key,
 	descriptionStep text not null,
@@ -37,7 +48,6 @@ values
 	(3,'pulisci la verdura',10,null,null),
 	(4,'infarcisci panna',5,null,null);
 
-drop table if exists Product;
 create table Product (
 	nameProduct character(30) not null primary key,
 	photoProduct character(100)
@@ -49,7 +59,6 @@ values
 	('verdura',null),
 	('panna',null);
 
-drop table if exists Tool;
 create table Tool (
 	nameTool character(30) not null primary key,
 	photoTool character(100)
@@ -61,7 +70,6 @@ values
 	('ciotola',null),
 	('cucchiaio',null);
 
-drop table if exists UserName;
 create table UserName (
 	username character(30) not null primary key,
 	email character(100)
@@ -73,41 +81,58 @@ values
 	('tommy',null),
 	('fede',null);
 
-drop table if exists Ingredient;
 create table Ingredient (
-	idRecipe integer not null references Recipe (idRecipe),
-	nameProduct character(30) not null references Product (nameProduct),
+	idRecipe integer not null,
+	nameProduct character(30) not null,
 	quantity double not null,
-	unitOfMeasure character(30) not null
+    optional boolean not null default false,
+    
+    primary key(idRecipe, nameProduct),
+    foreign key(idRecipe) references Recipe(idRecipe),
+    foreign key(nameProduct) references Product(nameProduct)
 );
 
 insert into Ingredient 
 values
-	(1,'riso',1,'grammi'),
-	(2,'verdura',1,'grammi'),
-	(3,'panna',1,'grammi');
+	(1,'riso',1,false),
+	(2,'verdura',1,false),
+	(3,'panna',1,false);
 
-drop table if exists Availability;
-create table Availability (
-	username character(30) not null references UserName (username),
-	nameProduct character(30) not null references Product (nameProduct),
+create table ProductAvailability (
+	username character(30) not null,
+	nameProduct character(30) not null,
 	quantity double not null,
-	unitOfMeasure character(30) not null
+    
+    primary key(username, nameProduct),
+    foreign key(username) references UserName(username),
+    foreign key(nameProduct) references Product(nameProduct)
 );
 
-insert into Availability 
+insert into ProductAvailability 
 values
-	('ale','riso',10,'grammi'),
-	('ale','verdura',20,'grammi'),
-	('ale','panna',50,'grammi'),
-	('fede','riso',6,'grammi');
+	('ale','riso',10),
+	('ale','verdura',20),
+	('ale','panna',50),
+	('fede','riso',6);
 
-drop table if exists Rating;
+create table ToolAvailability (
+	username character(30) not null,
+	nameTool character(30) not null,
+    
+    primary key(username, nameTool),
+    foreign key(username) references UserName(username),
+    foreign key(nameTool) references Tool(nameTool)
+);
+
 create table Rating (
-	username character(30) not null references UserName (username),
-	idRecipe integer not null references Recipe (idRecipe),
+	username character(30) not null,
+	idRecipe integer not null,
 	commentRating text,
-	rating integer not null
+	rating integer not null,
+    
+    primary key(username, idRecipe),
+    foreign key(username) references UserName(username),
+    foreign key(idRecipe) references Recipe(idRecipe)
 );
 
 insert into Rating 
@@ -119,11 +144,14 @@ values
 	('tommy',2,null,2),
 	('tommy',3,null,3);
 
-drop table if exists Sequence;
 create table Sequence (
-	idRecipe integer not null references Recipe (idRecipe),
-	idStep integer not null references Step (idStep),
-	position integer not null
+	idRecipe integer not null,
+	idStep integer not null,
+	position integer not null,
+
+	primary key(idRecipe, idStep),
+    foreign key(idRecipe) references Recipe(idRecipe),
+    foreign key(idStep) references Step(idStep)
 );
 
 insert into Sequence 
@@ -133,16 +161,23 @@ values
 	(2,1,2),
 	(3,2,3);
 
-drop table if exists ToolSet;
 create table ToolSet (
-	idRecipe integer not null references Recipe (idRecipe),
-	nameTool integer not null references Tool (nameTool)
+	idRecipe integer not null,
+	nameTool character(30) not null,
+    optional boolean not null,
+
+	primary key(idRecipe, nameTool),
+    foreign key(idRecipe) references Recipe(idRecipe),
+    foreign key(nameTool) references Tool(nameTool)
 );
 
-drop table if exists Author;
 create table Author (
-	idRecipe integer not null references Recipe (idRecipe),
-	username integer not null references UserName (username)
+	idRecipe integer not null,
+	username character(30) not null,
+
+	primary key(idRecipe, username),
+    foreign key(idRecipe) references Recipe(idRecipe),
+    foreign key(username) references UserName(username)
 );
 
 /* Get the rating of a recipe */
@@ -157,14 +192,13 @@ where idRecipe not in (
 	select idRecipe
 	from Ingredient i 
 	where
-		i.nameProduct not in (select nameProduct from Availability where username = 'fede') or
+		i.nameProduct not in (select nameProduct from ProductAvailability where username = 'fede') or
         i.quantity > (
 			select a.quantity
-            from Availability a
+            from ProductAvailability a
             where 
 				a.username = 'fede' and 
-                i.nameProduct = a.nameProduct and
-                i.unitOfMeasure = a.unitOfMeasure));
+                i.nameProduct = a.nameProduct));
                 
 select *
 from Recipe
@@ -173,24 +207,29 @@ where idRecipe not in (
 	from Ingredient i 
 	where not exists (
 		select *
-        from Availability a
+        from ProductAvailability a
         where 
-			a.username = 'fede' and 
+			a.username = 'ale' and 
 			i.nameProduct = a.nameProduct and
-			i.unitOfMeasure = a.unitOfMeasure and
             i.quantity <= a.quantity));
-            
-/* Get the possible recipes of a given user ordered by rating */
-select *
-from Recipe
-where idRecipe not in (
+
+/* Get the possible recipes for a given user accordingly by time, difficulty and avaiability, ordered by rating */
+select Recipe.*, avg(rating) as AverageRating
+from Recipe natural join Rating
+where
+	timeRecipe <= 100 and
+	difficulty <= 100 and
+	idRecipe not in (
 	select idRecipe
 	from Ingredient i 
-	where not exists (
-		select *
-        from Availability a
-        where 
-			a.username = 'fede' and 
-			i.nameProduct = a.nameProduct and
-			i.unitOfMeasure = a.unitOfMeasure and
-            i.quantity <= a.quantity));
+	where
+		i.optional = false and
+		not exists (
+			select *
+			from ProductAvailability a
+			where 
+				a.username = 'tommy' and 
+				i.nameProduct = a.nameProduct and
+				i.quantity <= a.quantity))
+group by idRecipe
+order by avg(rating) desc;
