@@ -76,7 +76,7 @@ values
 drop table if exists Ingredient;
 create table Ingredient (
 	idRecipe integer not null references Recipe (idRecipe),
-	nameProduct integer not null references Product (nameProduct),
+	nameProduct character(30) not null references Product (nameProduct),
 	quantity double not null,
 	unitOfMeasure character(30) not null
 );
@@ -85,27 +85,26 @@ insert into Ingredient
 values
 	(1,'riso',1,'grammi'),
 	(2,'verdura',1,'grammi'),
-	(3,'panna',1,'grammi'),
-	(3,'riso',2,'grammi');
+	(3,'panna',1,'grammi');
 
 drop table if exists Availability;
 create table Availability (
-	username integer not null references UserName (username),
-	nameProduct integer not null references Product (nameProduct),
+	username character(30) not null references UserName (username),
+	nameProduct character(30) not null references Product (nameProduct),
 	quantity double not null,
-	unitOfMeasure character(30)
+	unitOfMeasure character(30) not null
 );
 
 insert into Availability 
 values
-	('ale','riso',1,'grammi'),
-	('ale','verdura',2,'grammi'),
-	('ale','panna',5,'grammi'),
+	('ale','riso',10,'grammi'),
+	('ale','verdura',20,'grammi'),
+	('ale','panna',50,'grammi'),
 	('fede','riso',6,'grammi');
 
 drop table if exists Rating;
 create table Rating (
-	username integer not null references UserName (username),
+	username character(30) not null references UserName (username),
 	idRecipe integer not null references Recipe (idRecipe),
 	commentRating text,
 	rating integer not null
@@ -146,28 +145,52 @@ create table Author (
 	username integer not null references UserName (username)
 );
 
-select *
-from UserName;
-
-select *
-from recipe
-where authorName = 'fede';
-
 /* Get the rating of a recipe */
 select avg(rating)
 from Rating natural join Recipe
 where nameRecipe = 'Sushi';
 
 /* Get the possible recipes of a given user */
-select Recipe.*
-from Recipe, Availability a
-where a.username = 'fede' and idRecipe not in (
+select *
+from Recipe
+where idRecipe not in (
 	select idRecipe
 	from Ingredient i 
 	where
 		i.nameProduct not in (select nameProduct from Availability where username = 'fede') or
-		(
+        i.quantity > (
+			select a.quantity
+            from Availability a
+            where 
+				a.username = 'fede' and 
+                i.nameProduct = a.nameProduct and
+                i.unitOfMeasure = a.unitOfMeasure));
+                
+select *
+from Recipe
+where idRecipe not in (
+	select idRecipe
+	from Ingredient i 
+	where not exists (
+		select *
+        from Availability a
+        where 
+			a.username = 'fede' and 
 			i.nameProduct = a.nameProduct and
 			i.unitOfMeasure = a.unitOfMeasure and
-			i.quantity > a.quantity)
-		);
+            i.quantity <= a.quantity));
+            
+/* Get the possible recipes of a given user ordered by rating */
+select *
+from Recipe
+where idRecipe not in (
+	select idRecipe
+	from Ingredient i 
+	where not exists (
+		select *
+        from Availability a
+        where 
+			a.username = 'fede' and 
+			i.nameProduct = a.nameProduct and
+			i.unitOfMeasure = a.unitOfMeasure and
+            i.quantity <= a.quantity));
