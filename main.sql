@@ -24,15 +24,16 @@ create table Recipe (
 	regionalOrigin character(30),
 	timeRecipe integer not null,
 	difficulty integer not null,
-	authorName character(30) not null
+	authorName character(30) not null,
+	authorLink character(30) /*a reference for the author(e.g. a link for a personal blog or the title of the book)*/
 );
-
+/*
 insert into Recipe 
 values
 	(1,'Sushi','primo','riso con pesce','giappo',null,null,40,2,'tommy'),
 	(2,'ceasar salad','contorno',null,'americana',null,null,5,1,'ale'),
 	(3,'cannoli siciliani','dolce',null,'siciliana','italia','sicilia',90,3,'fede');
-
+*/
 create table Step (
 	idStep integer not null primary key,
 	descriptionStep text not null,
@@ -50,14 +51,17 @@ values
 
 create table Product (
 	nameProduct character(30) not null primary key,
+	classProduct character(30) not null,
 	photoProduct character(100)
 );
 
+/*
 insert into Product 
 values
 	('riso',null),
 	('verdura',null),
 	('panna',null);
+*/
 
 create table Tool (
 	nameTool character(30) not null primary key,
@@ -92,11 +96,13 @@ create table Ingredient (
     foreign key(nameProduct) references Product(nameProduct)
 );
 
+/*
 insert into Ingredient 
 values
 	(1,'riso',1,false),
 	(2,'verdura',1,false),
 	(3,'panna',1,false);
+*/
 
 create table ProductAvailability (
 	username character(30) not null,
@@ -108,12 +114,14 @@ create table ProductAvailability (
     foreign key(nameProduct) references Product(nameProduct)
 );
 
+/*
 insert into ProductAvailability 
 values
 	('ale','riso',10),
 	('ale','verdura',20),
 	('ale','panna',50),
 	('fede','riso',6);
+*/
 
 create table ToolAvailability (
 	username character(30) not null,
@@ -135,6 +143,7 @@ create table Rating (
     foreign key(idRecipe) references Recipe(idRecipe)
 );
 
+/*
 insert into Rating 
 values
 	('ale',1,null,4),
@@ -143,6 +152,7 @@ values
 	('fede',1,null,3),
 	('tommy',2,null,2),
 	('tommy',3,null,3);
+*/
 
 create table Sequence (
 	idRecipe integer not null,
@@ -154,12 +164,14 @@ create table Sequence (
     foreign key(idStep) references Step(idStep)
 );
 
+/*
 insert into Sequence 
 values
 	(1,1,1),
 	(1,3,2),
 	(2,1,2),
 	(3,2,3);
+*/
 
 create table ToolSet (
 	idRecipe integer not null,

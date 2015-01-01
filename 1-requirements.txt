@@ -1,0 +1,25 @@
+Requirements expressend in natural language
+
+You want to make a database for a mobile application who returns the possible list of recipe that a customer/user could make with the products that has available.
+
+As for the Recipes you want to represent a unique identifier(ID), a name , a type , a short description , the cuisine whom belongs , the origin country , the origin region , the time required , the difficulty request , the author name and a link for the author. 
+
+As for the Products you want to represent the name , the class of product and the image for representing the product.
+
+As for the Tool you want to represent the name and the image for representing it.
+
+/*da sistemare eer*/ /*da pensare insieme agli altri*/
+As for the User you want to represent the username , the email and the password.
+
+As for the Step you want to represent a unique identifier(ID), a description , the time required , a picture and a video.
+
+ 
+
+
+
+
+
+
+
+
+
