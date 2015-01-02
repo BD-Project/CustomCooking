@@ -1,8 +1,0 @@
-Business Rules:
-
-1-the class of product is computed by the application logic
-(e.g. if in a recipe appears a ingredient of meat , the recipe has to be excluded from vegetarian/vegan/fruitarian recipe. )
-
-2-   * <= the rating <= *****
-
-3- during the sign in phase the user must complete a captcha for avoiding bot 

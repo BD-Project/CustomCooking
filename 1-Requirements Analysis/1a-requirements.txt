@@ -1,6 +1,6 @@
 Requirements expressend in natural language
 
-You want to make a database for a mobile application who returns the possible list of recipe that a customer/user could make with the products that has available.
+You want to make a database for a mobile application which returns the possible list of recipes that a customer/user could make with the products that has available.
 
 /*Entity*/
 As for the Recipes you want to represent a unique identifier(ID), a name , a type , a short description , the cuisine whom belongs , the origin country , the origin region , the time required , the difficulty request , the author name and a link for the author. 
@@ -20,7 +20,7 @@ About the Recipe , you want to store :
 -the ingredients required ;
 -the tools required ;
 -the  sequences of steps ;
--if a user is a author ;
+-if a user is an author ;
 -the vote and a review of a user.
 
 

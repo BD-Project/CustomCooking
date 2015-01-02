@@ -1,0 +1,8 @@
+
+1.Sign in of a new User( on average 1000 per day ) /*Tom?*/ /*depending on website renown -Fede- */
+2.Fill in/Modify tools availability (on average 1000 per day )
+3.Visualize recipe according to user's availability( on average 1000000 per day ) /*???*/
+4.Insert a new Recipe ( on average 50 per day )
+5.Rating a recipe ( on average 5000 per day )
+6.Visualize recipe according to a specific parameter( on average 500000 per day )
+

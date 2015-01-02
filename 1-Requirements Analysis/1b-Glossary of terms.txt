@@ -1,0 +1,14 @@
+WORD		DESCRIPTION							SYNONYMUS    	LINK
+
+Recipe		An alghortims							-		User,Step,Tool,Product
+Product		all the possible raw matherials for the recipes			Ingredients	User,Recipe
+Tool		object that elaborates the ingredients				-		User,Recipe
+Step		an atomic sequence in the recipe				-		Recipe
+Ingredient	raw matherials required or optional for a specific recipe			Product		Product,Recipe
+Sequence	set of steps grouped by recipe					-		Recipe
+ProductAvalaibilty 	the availability of product of a user				-		User,Product
+Rating		user opinion expressed in stars(min 1 max 5) and short review both optional	-		User,Recipe
+Author		author of the recipe						-		User,Recipe	
+ToolAvailability	the availability of tools of a user			-		User,Tool
+ToolSet		the tools required or optional for a specific recipe		-		Tool,Recipe
+ 
