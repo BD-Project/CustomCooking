@@ -1,0 +1,39 @@
+2.a
+
+The basic entities and relationships occurring in the model are the following:
+1. User, representing the table of users with basic information.
+2. Product, representing the table of all possible ingredients.
+3. Tool, representing the table of known cooking tools.
+4. Recipe, representing the table of all possible recipes.
+
+5.Ingredient, representing the relationship of being an ingredient of a specific recipe in certain amount(Between Product-Recipe). 
+6.ProductAvailability, representing the relationship between a user and the products in his kitchen (Between Product-User).
+7.ToolSet, representing the relationship of being a required tool in a specific recipe(Between Tool-Recipe). 
+8.ToolAvailability, representing the relationship between a user and the tool in his kitchen(Between Tool-User).
+
+Starting from these basic entities we created the skeleton structure:
+
+	< picture1-er >
+
+
+2.b
+
+
+Every recipe is made of one or more step, when we started thinking about the possible attributes for recipe, we made the decision to split the recipe in two different entities:
+
+	< picture2-er >
+
+The new relationship(sequence) is meant to split up the recipes so that common steps could be reused and to distinguish different steps better.
+The new entity(step) represent the step of a recipe.
+
+2.c
+
+/*A recipe can have an author that is a user, cause at application level we do the possibility to the user to submit their recipes*/
+
+Then we considered that recipes should have reletionship with the users,in particular what we needed was the reletionship with the author and rating:
+
+	< picture3-er >
+
+
+
+ 
