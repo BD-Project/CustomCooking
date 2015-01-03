@@ -16,7 +16,7 @@ Starting from these basic entities we created the skeleton structure:
 	< picture1-er >
 
 
-2.b
+2.b (bottom-up)
 
 
 Every recipe is made of one or more step, when we started thinking about the possible attributes for recipe, we made the decision to split the recipe in two different entities:
@@ -26,7 +26,7 @@ Every recipe is made of one or more step, when we started thinking about the pos
 The new relationship(sequence) is meant to split up the recipes so that common steps could be reused and to distinguish different steps better.
 The new entity(step) represent the step of a recipe.
 
-2.c
+2.c (bottom-up)
 
 /*A recipe can have an author that is a user, cause at application level we do the possibility to the user to submit their recipes*/
 
@@ -35,5 +35,39 @@ Then we considered that recipes should have reletionship with the users,in parti
 	< picture3-er >
 
 
+Then merge all the pieces for making the Big Picture:
 
- 
+
+	< picture4-er >
+
+
+2.d Data Dictionary 
+
+	Entity
+
+Entity name		description		attributes									identifier
+
+Recipe			an algo			idRec,nameRec,,descrtype,cuisine,nation,region,time,diff,auth,authlink	 	id
+Product			the possible ingredient	name,class,photo								name
+User			the customers/client	username,pass,email								username
+Tool			the tool		name,photo									name
+step			a piece of sequence	idstep,descr,time,photo,video							id
+
+	Relationship
+
+Relationship name	description		entity involved									attributes
+
+ProductAvailability	user available		User(0,N)-Product(0,N)								quantity
+Ingredients		product in a recipe	Product(1,N)-Recipe(1,N)							quantity,optional
+Toolavailability	user available		User(0,N)-Tool(0,N)								
+ToolSet			tool in a recipe	Tool(0,N)-Recipe(0,N)								optional
+Author			is a user author	User(0,N)-Recipe(0,N)								
+Rating			rating and review	User(0,N)-Recipe(0,N)								commentRating,rating
+Sequence		a sequence of step 	Recipe(1,N)-Step(1,N)								position
+
+
+
+2.e Business Rules
+
+
+	
