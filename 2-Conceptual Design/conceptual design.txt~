@@ -70,4 +70,66 @@ Sequence		a sequence of step 	Recipe(1,N)-Step(1,N)								position
 2.e Business Rules
 
 
+	Constraints Rules
+
+	CR1	the classProduct can be:			/*Non completo*/
+			-Meat,
+			-Vegetable,
+			-Mushrooms,
+			-Fruit,
+			-Fish,
+			-Spices,
+			-Cereals,
+			-Dairy product,
+			-Alcohol,
+			-Flour,
+			-Confectionery?   ( dry and sweet )
+
+	CR2	the typeRecipe can be:
+			-starter,
+			-first course,
+			-second course,
+			-dessert,
+			-all in one.
+
+	CR3	the cuisine can be:				/*Da completare*/
+			-all the nation in the world
+
+	CR4     the regionalOrigin:				/*Da completare*/
+			-all the region in the world
+
+	CR5	the regional must be region of the cuisine country
+
+	CR6	(MIN) * <= the rating <= ***** (MAX)	
+
+	CR6	(MIN) * <= the difficulty <= **** (MAX) where:
+
+		*-> easy  ,   **-> normal  ,  ***-> hard , ****-> extreme
+	
+
+	Derivation Rules
+
+	DR	the rating is the average of every user's vote for a specific recipe
+
+		
+		
+			
+					
+
+
+
+Business Rules and advice:
+1-the class of product is computed by the application logic
+(e.g. if in a recipe appears a ingredient of meat , the recipe has to be excluded from vegetarian/vegan/fruitarian recipe. )
+2- * <= the rating <= *****
+3- during the sign in phase the user must complete a captcha for avoiding bot
+4- 4-level difficulty :
+* -> easy
+** -> normal
+*** -> hard
+**** -> extreme
+5- A matrix for transforming the different unity of measure due to the different expression of them
+(e.g from teaspoon to ml , from pieces to grams )
+THE STANDARD IN THE DB IS:
+GRAMS FOR SOLID , ML FOR LIQUID
 	
