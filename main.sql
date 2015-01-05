@@ -21,7 +21,7 @@ create table Recipe (
 	descriptionRecipe text,
 	cuisine varchar(30),
 	regionalOrigin varchar(30),
-	timeRecipe integer not null,
+	preparationTime integer not null,
 	difficulty integer not null,
 	authorName varchar(30) not null,
     rating double,
@@ -170,13 +170,20 @@ begin
 	insert into ProductAvailability values (username, nameProduct, quantity);
 end $
 
+drop procedure if exists insertStep $
+create procedure insertStep(in idRecipe integer, idStep integer, position integer)
+comment 'Insert a step in a sequence'
+begin
+	insert into Sequence values (idRecipe, idStep, position);
+end $
+
 drop procedure if exists createRecipe $
 create procedure createRecipe(in nameRecipe varchar(30), typeRecipe varchar(30), descriptionRecipe text, 
-	cuisine varchar(30), regionalOrigin varchar(30), timeRecipe integer, difficulty integer, authorName varchar(30))
+	cuisine varchar(30), regionalOrigin varchar(30), difficulty integer, authorName varchar(30))
 comment 'Create a recipe'
 begin
-	insert into Recipe (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, timeRecipe, difficulty, authorName) 
-		values (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, timeRecipe, difficulty, authorName);
+	insert into Recipe (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, preparationTime, difficulty, authorName) 
+		values (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, 0, difficulty, authorName);
 end $
 
 drop procedure if exists rateRecipe $
@@ -200,7 +207,7 @@ begin
 	select Recipe.*
 	from Recipe
 	where
-		timeRecipe between timeMin and timeMax and
+		preparationTime between timeMin and timeMax and
 		difficulty between diffMin and diffMax and
 		idRecipe not in (
 			select idRecipe
@@ -234,6 +241,23 @@ begin
 	where idRecipe = new.idRecipe;
 end $
 
+/* Automatically update the overall time needed for a recipe. */
+drop trigger if exists updateTime $
+create trigger updateTime
+after insert on Sequence
+for each row
+begin
+	declare overallTime int;
+    
+	select sum(timeStep) into overallTime
+	from Sequence natural join Step
+	where idRecipe = new.idRecipe;
+	
+    update Recipe
+    set preparationTime = overallTime
+	where idRecipe = new.idRecipe;
+end $
+
 DELIMITER ;
 
 /* Testing */
@@ -242,9 +266,9 @@ call createAuthor("alex", "AvadaKedavra", "alex@studio.unibo.it");
 
 select * from Account;
 
-call createRecipe('Sushi', 'I course', 'Rice and fish', 'Japonese', null, 40, 2, 'tommy');
-call createRecipe('Ceasar Salad', 'III course', null, 'American', null, 15, 1, 'alex');
-call createRecipe('Seitan', 'II course', 'A vegan "meat" made with soy', null, null, 45, 3,'tommy');
+call createRecipe('Sushi', 'I course', 'Rice and fish', 'Japonese', null, 2, 'tommy');
+call createRecipe('Ceasar Salad', 'III course', null, 'American', null, 1, 'alex');
+call createRecipe('Seitan', 'II course', 'A vegan "meat" made with soy', null, null, 3,'tommy');
 
 call rateRecipe("alex", 1, "A wonderful dish!", 4);
 
@@ -259,6 +283,13 @@ call getRecipes(0, 40, 0, 4, "alex");
 call createStep('Wash the rice many times', 10, null, null);
 call createStep('Boil the water', 12, null, null);
 call createStep('Cut the vegetables at Julienne', 5, null, null);
+
+select preparationTime from Recipe where idRecipe = 1;
+
+call insertStep(1, 1, 1);
+call insertStep(1, 2, 2);
+
+select preparationTime from Recipe where idRecipe = 1;
 
 call addProduct('Rice', null);
 call addProduct('Cocumber', null);
