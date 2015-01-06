@@ -14,23 +14,36 @@ drop table if exists Product;
 drop table if exists Tool;
 drop table if exists Account;
 
+create table Account (
+	username varchar(30) not null,
+    pass varchar(32) not null,
+	email varchar(100),
+    creationTime datetime,
+    
+    primary key(username)
+);
+
 create table Recipe (
-	idRecipe integer not null auto_increment,
+	idRecipe int not null auto_increment,
 	nameRecipe varchar(30) not null,
 	typeRecipe varchar(30) not null,
 	descriptionRecipe text,
 	cuisine varchar(30),
 	regionalOrigin varchar(30),
-	preparationTime integer not null,
-	difficulty integer not null,
-	authorName varchar(30) not null,
+	preparationTime int not null,
+	difficultyAuthor int not null,
+    difficultyUsers double,
+    authorName varchar(30),
+    authorLink varchar(300),
+	username varchar(30) not null,
     rating double,
     
-    primary key(idRecipe)
+    primary key(idRecipe),
+    foreign key(username) references Account(username)
 );
 
 create table Step (
-	idStep integer not null auto_increment,
+	idStep int not null auto_increment,
 	descriptionStep varchar(300) not null,
 	timeStep int not null,
 	photoStep varchar(200),
@@ -41,7 +54,10 @@ create table Step (
 
 create table Product (
 	nameProduct varchar(30) not null,
-	photoProduct varchar(200),
+    classProduct varchar(30) not null,
+    unityOfMeasure varchar(10) not null,
+    subclassProduct varchar(30),
+    photoProduct varchar(200),
     
     primary key(nameProduct)
 );
@@ -53,17 +69,8 @@ create table Tool (
     primary key(nameTool)
 );
 
-create table Account (
-	username varchar(30) not null,
-    pass varchar(32) not null,
-	email varchar(100),
-    creationTime datetime,
-    
-    primary key(username)
-);
-
 create table Ingredient (
-	idRecipe integer not null,
+	idRecipe int not null,
 	nameProduct varchar(30) not null,
 	quantity double not null,
     optional boolean not null default false,
@@ -94,9 +101,10 @@ create table ToolAvailability (
 
 create table Rating (
 	username varchar(30) not null,
-	idRecipe integer not null,
+	idRecipe int not null,
 	commentRating text,
-	rating integer not null,
+	rating int not null,
+    difficulty int,
     
     primary key(username, idRecipe),
     foreign key(username) references Account(username),
@@ -104,9 +112,9 @@ create table Rating (
 );
 
 create table Sequence (
-	idRecipe integer not null,
-	idStep integer not null,
-	position integer not null,
+	idRecipe int not null,
+	idStep int not null,
+	position int not null,
 
 	primary key(idRecipe, idStep),
     foreign key(idRecipe) references Recipe(idRecipe),
@@ -114,7 +122,7 @@ create table Sequence (
 );
 
 create table ToolSet (
-	idRecipe integer not null,
+	idRecipe int not null,
 	nameTool varchar(30) not null,
     optional boolean not null,
 
@@ -124,7 +132,7 @@ create table ToolSet (
 );
 
 create table Author (
-	idRecipe integer not null,
+	idRecipe int not null,
 	username varchar(30) not null,
 
 	primary key(idRecipe, username),
@@ -143,10 +151,10 @@ begin
 end $
 
 drop procedure if exists addProduct $
-create procedure addProduct(in nameProduct varchar(30), photoProduct varchar(200))
+create procedure addProduct(in nameProduct varchar(30), classProduct varchar(30), unityOfMeasure varchar(10), subclassProduct varchar(30), photoProduct varchar(200))
 comment 'Add a product'
 begin
-	insert into Product values (nameProduct, photoProduct);
+	insert into Product values (nameProduct, classProduct, unityOfMeasure, subclassProduct, photoProduct);
 end $
 
 drop procedure if exists addTool $
@@ -179,18 +187,18 @@ end $
 
 drop procedure if exists createRecipe $
 create procedure createRecipe(in nameRecipe varchar(30), typeRecipe varchar(30), descriptionRecipe text, 
-	cuisine varchar(30), regionalOrigin varchar(30), difficulty integer, authorName varchar(30))
+	cuisine varchar(30), regionalOrigin varchar(30), difficulty integer, username varchar(30))
 comment 'Create a recipe'
 begin
-	insert into Recipe (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, preparationTime, difficulty, authorName) 
-		values (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, 0, difficulty, authorName);
+	insert into Recipe (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, preparationTime, difficultyAuthor, username) 
+		values (nameRecipe, typeRecipe, descriptionRecipe, cuisine, regionalOrigin, 0, difficultyAuthor, username);
 end $
 
 drop procedure if exists rateRecipe $
-create procedure rateRecipe(in username varchar(30), idRecipe int, commentRating text, rating int)
+create procedure rateRecipe(in username varchar(30), idRecipe int, commentRating text, rating int, difficulty int)
 comment 'Rate a recipe'
 begin
-	insert into Rating values (username, idRecipe, commentRating, rating);
+	insert into Rating values (username, idRecipe, commentRating, rating, difficulty);
 end $
 
 drop procedure if exists createStep $
@@ -200,15 +208,18 @@ begin
 	insert into Step (descriptionStep, timeStep, photoStep, videoStep) values (descriptionStep, timeStep, photoStep, videoStep);
 end $
 
-/* Get the possible recipes for a given user accordingly by time, difficulty and avaiability, ordered by rating */
 drop procedure if exists getRecipes $
 create procedure getRecipes(in timeMin int, timeMax int, diffMin int, diffMax int, username varchar(30))
+comment 'Get the possible recipes for a given user accordingly by time, difficulty and avaiability, ordered by rating'
 begin
 	select Recipe.*
 	from Recipe
 	where
 		preparationTime between timeMin and timeMax and
-		difficulty between diffMin and diffMax and
+		(
+			(difficultyAuthor between diffMin and diffMax) or
+            (difficultyUsers between diffMin and diffMax)
+		) and
 		idRecipe not in (
 			select idRecipe
 			from Ingredient i 
@@ -229,16 +240,28 @@ drop trigger if exists updateRating $
 create trigger updateRating
 after insert on Rating
 for each row
+comment 'Get the possible recipes for a given user accordingly by time, difficulty and avaiability, ordered by rating'
 begin
 	declare overallRating double;
+    declare overallDifficulty double;
     
 	select avg(rating) into overallRating
 	from Rating
 	where idRecipe = new.idRecipe;
-	
-    update Recipe
+    
+	update Recipe
     set rating = overallRating
 	where idRecipe = new.idRecipe;
+    
+    if (new.difficulty != null) then
+		select avg(difficulty) into overallDifficulty
+		from Rating
+		where idRecipe = new.idRecipe;
+        
+		update Recipe
+		set difficultyUsers = overallDifficulty
+		where idRecipe = new.idRecipe;
+    end if;
 end $
 
 /* Automatically update the overall time needed for a recipe. */
@@ -270,13 +293,13 @@ call createRecipe('Sushi', 'I course', 'Rice and fish', 'Japonese', null, 2, 'to
 call createRecipe('Ceasar Salad', 'III course', null, 'American', null, 1, 'alex');
 call createRecipe('Seitan', 'II course', 'A vegan "meat" made with soy', null, null, 3,'tommy');
 
-call rateRecipe("alex", 1, "A wonderful dish!", 4);
+call rateRecipe("alex", 1, "A wonderful dish!", 4, 1);
 
-select rating from Recipe where idRecipe = 1;
+select * from Recipe where idRecipe = 1;
 
-call rateRecipe("tommy", 1, "A dreadful dish!", 1);
+call rateRecipe("tommy", 1, "A dreadful dish!", 1, 3);
 
-select rating from Recipe where idRecipe = 1;
+select * from Recipe where idRecipe = 1;
 
 call getRecipes(0, 40, 0, 4, "alex");
 
@@ -291,9 +314,9 @@ call insertStep(1, 2, 2);
 
 select preparationTime from Recipe where idRecipe = 1;
 
-call addProduct('Rice', null);
-call addProduct('Cocumber', null);
-call addProduct('Salmon roe', null);
+call addProduct('Rice', 'Cereal', 'gr', null, null);
+call addProduct('Cocumber', 'Vegetable', 'gr', null, null);
+call addProduct('Salmon roe', 'Fish', 'gr', null, null);
 
 call addTool('hagiri',null);
 
