@@ -19,7 +19,8 @@ create table Account (
     pass varchar(32) not null,
 	email varchar(100),
     creationTime datetime,
-    
+	avatar varchar(100),
+
     primary key(username)
 );
 
@@ -144,10 +145,10 @@ create table Author (
 DELIMITER $
 
 drop procedure if exists addAuthor $
-create procedure addAuthor(in username varchar(30), pass varchar(30), email varchar(30))
+create procedure addAuthor(in username varchar(30), pass varchar(30), email varchar(30) , avatar varchar(100))
 comment 'Add an author'
 begin
-	insert into Account values (username, md5(pass), email, now());
+	insert into Account values (username, md5(pass), email, now() , avatar );
 end $
 
 drop procedure if exists addProduct $
@@ -284,8 +285,8 @@ end $
 DELIMITER ;
 
 /* Testing */
-call createAuthor("tommy", "HakunaMatata", "tommy@studio.unibo.it");
-call createAuthor("alex", "AvadaKedavra", "alex@studio.unibo.it");
+call createAuthor("tommy", "HakunaMatata", "tommy@studio.unibo.it" , null );
+call createAuthor("alex", "AvadaKedavra", "alex@studio.unibo.it" , null );
 
 select * from Account;
 
